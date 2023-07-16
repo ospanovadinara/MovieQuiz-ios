@@ -13,6 +13,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - Lifecycle
     
+    private var statisticService: StatisticService = StatisticServiceImplementation()
     private var currentQuestionIndex: Int = 0
     private var correctAnswers: Int = 0
     
@@ -22,8 +23,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var alertPresenter: AlertPresenter?
     
     
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        statisticService = StatisticServiceImplementation()
         
         alertPresenter = AlertPresenter(viewController: self)
         
@@ -32,7 +37,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         questionFactory = QuestionFactory(delegate: self)
         
         questionFactory?.requestNextQuestion()
-        
     }
     
     //MARK: - QuestionFactoryDelegate
@@ -90,10 +94,20 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     private func showNextQuestionOrResults() {
+        
+    
+        let accuracyText = String(format: "Средняя точность: %.2f%%", statisticService.totalAccuracy)
+        let gamesCountText = "Количество сыгранных квизов: \(statisticService.gamesCount)"
+        let bestGameText = "Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))"
+        let messageText = "\(gamesCountText)\n\(bestGameText)\n\(accuracyText)"
+        
+
+        
         if currentQuestionIndex == questionsAmount - 1 {
+            statisticService.store(correct: correctAnswers, total: questionsAmount)
             let alertModel = AlertModel(
                 title: "Этот раунд окончен!",
-                message: "Ваш результат: \(correctAnswers)/10",
+                message: "Ваш результат: \(correctAnswers)/10\n\(messageText)",
                 buttonText: "Сыграть еще раз",
                 completion: {
                     self.currentQuestionIndex = 0
@@ -104,7 +118,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             alertPresenter?.presentAlert(with: alertModel)
         } else {
             currentQuestionIndex += 1
-            
             self.questionFactory?.requestNextQuestion()
             
         }
@@ -126,7 +139,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             
-            self.hideAnswerResult()
+            self.hideAnswerResult()            
             self.showNextQuestionOrResults()
         }
     }
