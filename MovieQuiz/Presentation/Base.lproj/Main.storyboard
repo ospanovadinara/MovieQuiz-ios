@@ -58,7 +58,7 @@
                                             <constraint firstAttribute="width" relation="lessThanOrEqual" secondItem="GM6-QH-cdg" secondAttribute="height" multiplier="2:3" id="FXc-dC-bqv"/>
                                         </constraints>
                                     </imageView>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalCompressionResistancePriority="749" text="Рейтинг этого фильма меньше чем 6?" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BRb-UV-Qjs" userLabel="Question Label">
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalCompressionResistancePriority="749" text="Рейтинг этого фильма меньше чем 7?" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BRb-UV-Qjs" userLabel="Question Label">
                                         <rect key="frame" x="0.0" y="643" width="374" height="76"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="76" id="aAe-ZC-t13"/>
@@ -111,17 +111,23 @@
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="U4Z-JG-tAf">
+                                <rect key="frame" x="197" y="438" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="klQ-83-Bc6" secondAttribute="trailing" constant="20" id="DtD-4P-zGB"/>
                             <constraint firstItem="klQ-83-Bc6" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="IEU-EY-K9M"/>
+                            <constraint firstItem="U4Z-JG-tAf" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="QDQ-jb-STb"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="klQ-83-Bc6" secondAttribute="bottom" constant="5" id="RRs-CE-Mre"/>
                             <constraint firstItem="klQ-83-Bc6" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="ZJG-BF-goN"/>
+                            <constraint firstItem="U4Z-JG-tAf" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="mye-T5-GWw"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="U4Z-JG-tAf" id="uaG-wU-KbT"/>
                         <outlet property="counterLabel" destination="CZj-B6-kcb" id="ojT-2m-huD"/>
                         <outlet property="imageView" destination="GM6-QH-cdg" id="jkT-hz-cM4"/>
                         <outlet property="noButton" destination="EtK-1n-ayu" id="mds-MZ-TmB"/>
