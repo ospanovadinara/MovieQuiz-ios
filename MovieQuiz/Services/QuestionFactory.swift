@@ -7,15 +7,15 @@
 
 import Foundation
 
-protocol QuestionFactoryProtocol {
-    func requestNextQuestion()
-    func loadData()
-}
-
 final class QuestionFactory: QuestionFactoryProtocol {
-    
+    private let moviesLoader: MoviesLoading
+    private weak var delegate: QuestionFactoryDelegate?
     private var movies: [MostPopularMovie] = []
-    
+
+    init(moviesLoader: MoviesLoading, delegate:QuestionFactoryDelegate?) {
+        self.moviesLoader = moviesLoader
+        self.delegate = delegate
+    }
 //    private let questions: [QuizQuestion] = [
 //        QuizQuestion(
 //            image: "The Godfather",
@@ -59,20 +59,7 @@ final class QuestionFactory: QuestionFactoryProtocol {
 //            correctAnswer: false)
 //    ]
     
-    private let moviesLoader: MoviesLoading
-    private weak var delegate: QuestionFactoryDelegate?
-    
-    
-    init(moviesLoader: MoviesLoading, delegate:QuestionFactoryDelegate?) {
-        self.moviesLoader = moviesLoader
-        self.delegate = delegate
-    }
-    
-//    weak var delegate: QuestionFactoryDelegate?
-//    init(delegate: QuestionFactoryDelegate) {
-//        self.delegate = delegate
-//    }
-    
+
     func loadData() {
         moviesLoader.loadMovies { [weak self] result in
             DispatchQueue.main.async {
@@ -87,13 +74,16 @@ final class QuestionFactory: QuestionFactoryProtocol {
             }
         }
     }
-    
+
     func requestNextQuestion() {
         DispatchQueue.global().async { [weak self] in
-            guard let self = self else { return }
-            let index = (0..<self.movies.count).randomElement() ?? 0
-            
-            guard let movie = self.movies[safe: index] else { return }
+            guard
+                let self = self,
+                let index = (0..<self.movies.count).randomElement(),
+                let movie = self.movies[safe: index]
+            else {
+                return
+            }
             
             var imageData = Data()
             
@@ -118,14 +108,5 @@ final class QuestionFactory: QuestionFactoryProtocol {
             }
         }
     }
-//    func requestNextQuestion() {
-//        guard let index = (0..<questions.count).randomElement() else {
-//            delegate?.didReceiveNextQuestion(question: nil)
-//            return
-//        }
-//
-//        let question = questions[safe: index]
-//        delegate?.didReceiveNextQuestion(question: question)
-//    }
 }
 

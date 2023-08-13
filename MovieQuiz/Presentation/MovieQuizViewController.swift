@@ -10,25 +10,22 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    
-    // MARK: - Lifecycle
-    
-    private var statisticService: StatisticService = StatisticServiceImplementation()
-    private var currentQuestionIndex: Int = 0
+
+
+//MARK: - UI Components 
     private var correctAnswers: Int = 0
-    
-    private let questionsAmount: Int = 10
+    private var statisticService: StatisticService = StatisticServiceImplementation()
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     
-    private var alertPresenter: AlertPresenter?
+    private var alertPresenter = AlertPresenter()
+    private let presenter = MovieQuizPresenter()
+
     
-    
+    //MARK: - Lifecycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
-        alertPresenter = AlertPresenter(viewController: self)
         
         imageView.layer.cornerRadius = 20
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
@@ -50,11 +47,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let model = AlertModel(title: "Ошибка",
                                message: message,
                                buttonText: "Попробовать еще раз") { [weak self] in
-            self?.currentQuestionIndex = 0
+            self?.presenter.resetQuestionIndex()
             self?.correctAnswers = 0
             self?.questionFactory?.loadData()
         }
-        alertPresenter?.presentAlert(with: model)
+        alertPresenter.presentAlert(in: self, with: model)
     }
     
     private func hideLoadingIndicator() {
@@ -78,27 +75,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
         
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
     }
-    
-    private func convert(model:QuizQuestion) -> QuizStepViewModel {
-        let questionStep = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return questionStep
-    }
-    
+
     private func show(quiz step: QuizStepViewModel) {
         imageView.contentMode = .scaleAspectFill
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
     }
-    
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         
@@ -124,12 +112,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         noButton.isEnabled = false
         yesButton.isEnabled = false
     }
-    
+
     private func showNextQuestionOrResults() {
-        
-    
-        if currentQuestionIndex == questionsAmount - 1 {
-            statisticService.store(correct: correctAnswers, total: questionsAmount)
+
+        if presenter.isLastQuestion() {
+            statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
             
             let accuracyText = String(format: "Средняя точность: %.2f%%", statisticService.totalAccuracy)
             let gamesCountText = "Количество сыгранных квизов: \(statisticService.gamesCount)"
@@ -141,14 +128,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 message: "Ваш результат: \(correctAnswers)/10\n\(messageText)",
                 buttonText: "Сыграть еще раз",
                 completion: {
-                    self.currentQuestionIndex = 0
+                    self.presenter.resetQuestionIndex()
                     self.correctAnswers = 0
                     self.questionFactory?.requestNextQuestion()
                 }
             )
-            alertPresenter?.presentAlert(with: alertModel)
+            alertPresenter.presentAlert(in: self, with: alertModel)
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             self.questionFactory?.requestNextQuestion()
         }
         noButton.isEnabled = true
