@@ -82,26 +82,27 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         presenter.yesButtonClicked()
         
-        noButton.isEnabled = false
-        yesButton.isEnabled = false
+//        noButton.isEnabled = false
+//        yesButton.isEnabled = false
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         presenter.noButtonClicked()
 
-        noButton.isEnabled = false
-        yesButton.isEnabled = false
+//        noButton.isEnabled = false
+//        yesButton.isEnabled = false
     }
 
-    private func show(quiz result: QuizResultsViewModel) {
+     func showResult(quiz result: QuizResultsViewModel) {
         var resultMessage = result.text
         if let statisticService = statisticService {
             statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
 
+            let message = "Ваш результат: \(correctAnswers)/10"
             let accuracyText = String(format: "Средняя точность: %.2f%%", statisticService.totalAccuracy)
             let gamesCountText = "Количество сыгранных квизов: \(statisticService.gamesCount)"
             let bestGameText = "Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))"
-            let messageText = "\(gamesCountText)\n\(bestGameText)\n\(accuracyText)"
+            let messageText = "\(message)\n\(gamesCountText)\n\(bestGameText)\n\(accuracyText)"
 
             resultMessage = messageText
         }
@@ -117,22 +118,22 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         alertPresenter.presentAlert(in: self, with: model)
     }
 
-    private func showNextQuestionOrResults() {
-        if presenter.isLastQuestion() {
-            let message = "Вы ответили на \(correctAnswers) из 10, попробуйте еще раз!"
-
-            let viewModel = QuizResultsViewModel(
-                title: "Этот раунд окончен!",
-                text: message,
-                buttonText: "Сыграть еще раз")
-            show(quiz: viewModel)
-        }  else {
-            presenter.switchToNextQuestion()
-            self.questionFactory?.requestNextQuestion()
-        }
-        noButton.isEnabled = true
-        yesButton.isEnabled = true
-    }
+//    private func showNextQuestionOrResults() {
+//        if presenter.isLastQuestion() {
+//            let message = "Вы ответили на \(correctAnswers) из 10, попробуйте еще раз!"
+//
+//            let viewModel = QuizResultsViewModel(
+//                title: "Этот раунд окончен!",
+//                text: message,
+//                buttonText: "Сыграть еще раз")
+//            show(quiz: viewModel)
+//        }  else {
+//            presenter.switchToNextQuestion()
+//            self.questionFactory?.requestNextQuestion()
+//        }
+//        noButton.isEnabled = true
+//        yesButton.isEnabled = true
+//    }
     
     func showAnswerResult(isCorrect: Bool) {
         imageView.layer.masksToBounds = true
@@ -146,9 +147,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
-            
+//            self.presenter.correctAnswers = self.correctAnswers
+            self.presenter.questionFactory = self.questionFactory
             self.hideAnswerResult()            
-            self.showNextQuestionOrResults()
+            self.presenter.showNextQuestionOrResults()
         }
     }
     
