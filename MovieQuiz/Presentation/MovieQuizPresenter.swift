@@ -9,13 +9,13 @@ import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     
-    private var currentQuestionIndex: Int = 0
     private weak var viewController: MovieQuizViewController?
     private var questionFactory: QuestionFactoryProtocol?
     private var statisticService: StatisticService!
-    var currentQuestion: QuizQuestion?
-    var correctAnswers: Int = 0
-    let questionsAmount: Int = 10
+    private var currentQuestion: QuizQuestion?
+    private var currentQuestionIndex: Int = 0
+    private var correctAnswers: Int = 0
+    private let questionsAmount: Int = 10
 
     init(viewController: MovieQuizViewController) {
         self.viewController = viewController
@@ -37,9 +37,27 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     func didFailToLoadData(with error: Error) {
         viewController?.showNetworkError(message: error.localizedDescription)
     }
-    
+
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else {
+            return
+        }
+
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
+    }
+
+    func didAnswer(isCorrectAnswer: Bool) {
+        if isCorrectAnswer {
+            correctAnswers += 1
+        }
     }
     
     func restartGame() {
@@ -67,7 +85,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     func noButtonClicked() {
         didAnswer(isYes: false)
     }
-    
+
     private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else {
             return
@@ -75,24 +93,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         let usersAnswer = isYes
         proceedWithAnswer(isCorrect: usersAnswer == currentQuestion.correctAnswer)
     }
-    
-    func didAnswer(isCorrectAnswer: Bool) {
-        correctAnswers += 1
-    }
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-        
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.show(quiz: viewModel)
-        }
-    }
 
-    func proceedWithAnswer(isCorrect: Bool) {
+    private func proceedWithAnswer(isCorrect: Bool) {
 
         didAnswer(isCorrectAnswer: isCorrect)
 
@@ -101,11 +103,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
                 viewController?.hideAnswerResult()
-            self.showNextQuestionOrResults()
+            self.proceedToNextQuestionOrResults()
         }
     }
     
-    func showNextQuestionOrResults() {
+    func proceedToNextQuestionOrResults() {
         if self.isLastQuestion() {
             let message = "Вы ответили на \(correctAnswers) из 10, попробуйте еще раз!"
             

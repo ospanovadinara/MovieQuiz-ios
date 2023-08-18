@@ -10,12 +10,10 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
-
     //MARK: - UI Components
     private var alertPresenter = AlertPresenter()
     private var presenter: MovieQuizPresenter!
 
-    
     //MARK: - Lifecycle
 
     override func viewDidLoad() {
@@ -26,34 +24,8 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         imageView.layer.cornerRadius = 20
     }
-    
-    //MARK: - Loading Indicator
-    func showLoadingIndicator() {
-        activityIndicator.isHidden = false
-        activityIndicator.startAnimating()
-    }
-    
-    func showNetworkError(message: String) {
-        hideLoadingIndicator()
 
-        let model = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз") { [weak self] in
-            self?.presenter.restartGame()
-        }
-        alertPresenter.presentAlert(in: self, with: model)
-    }
-    
-    func hideLoadingIndicator() {
-        activityIndicator.isHidden = true
-    }
-
-    func show(quiz step: QuizStepViewModel) {
-        imageView.contentMode = .scaleAspectFill
-        imageView.image = step.image
-        textLabel.text = step.question
-        counterLabel.text = step.questionNumber
-    }
+    // MARK: - Actions
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         presenter.yesButtonClicked()
@@ -61,6 +33,15 @@ final class MovieQuizViewController: UIViewController {
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         presenter.noButtonClicked()
+    }
+
+    // MARK: - Private functions
+    func show(quiz step: QuizStepViewModel) {
+        imageView.layer.borderColor = UIColor.clear.cgColor
+        imageView.contentMode = .scaleAspectFill
+        imageView.image = step.image
+        textLabel.text = step.question
+        counterLabel.text = step.questionNumber
     }
 
     func showResult(quiz result: QuizResultsViewModel) {
@@ -76,6 +57,10 @@ final class MovieQuizViewController: UIViewController {
         alertPresenter.presentAlert(in: self, with: model)
     }
 
+    func hideAnswerResult() {
+        imageView.layer.borderWidth = 0
+    }
+
     func highlightImageBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
@@ -83,8 +68,26 @@ final class MovieQuizViewController: UIViewController {
         imageView.layer.cornerRadius = 20
     }
 
-    func hideAnswerResult() {
-        imageView.layer.borderWidth = 0
+    //MARK: - Loading Indicator
+    func showLoadingIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+
+    func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+    }
+
+
+    func showNetworkError(message: String) {
+        hideLoadingIndicator()
+
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз") { [weak self] in
+            self?.presenter.restartGame()
+        }
+        alertPresenter.presentAlert(in: self, with: model)
     }
 }
 
