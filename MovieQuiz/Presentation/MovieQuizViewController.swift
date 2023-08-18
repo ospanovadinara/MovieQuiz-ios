@@ -13,7 +13,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
 
 //MARK: - UI Components 
     private var correctAnswers: Int = 0
-    private var statisticService: StatisticService = StatisticServiceImplementation()
+    private var statisticService: StatisticService?
     private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter = AlertPresenter()
     private let presenter = MovieQuizPresenter()
@@ -93,27 +93,40 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         yesButton.isEnabled = false
     }
 
-    private func showNextQuestionOrResults() {
-        if presenter.isLastQuestion() {
+    private func show(quiz result: QuizResultsViewModel) {
+        var resultMessage = result.text
+        if let statisticService = statisticService {
             statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
-            
+
             let accuracyText = String(format: "Средняя точность: %.2f%%", statisticService.totalAccuracy)
             let gamesCountText = "Количество сыгранных квизов: \(statisticService.gamesCount)"
             let bestGameText = "Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))"
             let messageText = "\(gamesCountText)\n\(bestGameText)\n\(accuracyText)"
-            
-            let alertModel = AlertModel(
+
+            resultMessage = messageText
+        }
+
+        let model = AlertModel(title: result.title, message: resultMessage, buttonText: result.buttonText) { [weak self] in
+            guard let self = self else { return }
+
+            self.presenter.resetQuestionIndex()
+            self.correctAnswers = 0
+
+            self.questionFactory?.requestNextQuestion()
+        }
+        alertPresenter.presentAlert(in: self, with: model)
+    }
+
+    private func showNextQuestionOrResults() {
+        if presenter.isLastQuestion() {
+            let message = "Вы ответили на \(correctAnswers) из 10, попробуйте еще раз!"
+
+            let viewModel = QuizResultsViewModel(
                 title: "Этот раунд окончен!",
-                message: "Ваш результат: \(correctAnswers)/10\n\(messageText)",
-                buttonText: "Сыграть еще раз",
-                completion: {
-                    self.presenter.resetQuestionIndex()
-                    self.correctAnswers = 0
-                    self.questionFactory?.requestNextQuestion()
-                }
-            )
-            alertPresenter.presentAlert(in: self, with: alertModel)
-        } else {
+                text: message,
+                buttonText: "Сыграть еще раз")
+            show(quiz: viewModel)
+        }  else {
             presenter.switchToNextQuestion()
             self.questionFactory?.requestNextQuestion()
         }
