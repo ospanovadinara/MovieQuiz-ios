@@ -12,7 +12,6 @@ final class MovieQuizViewController: UIViewController {
 
 
     //MARK: - UI Components
-    private var statisticService: StatisticService?
     private var alertPresenter = AlertPresenter()
     private var presenter: MovieQuizPresenter!
 
@@ -21,12 +20,11 @@ final class MovieQuizViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        imageView.layer.cornerRadius = 20
-        statisticService = StatisticServiceImplementation()
-
-        showLoadingIndicator()
         presenter = MovieQuizPresenter(viewController: self)
+    }
+
+    override func viewDidLayoutSubviews() {
+        imageView.layer.cornerRadius = 20
     }
     
     //MARK: - Loading Indicator
@@ -66,20 +64,11 @@ final class MovieQuizViewController: UIViewController {
     }
 
     func showResult(quiz result: QuizResultsViewModel) {
-        var resultMessage = result.text
-        if let statisticService = statisticService {
-            statisticService.store(correct: presenter.correctAnswers, total: presenter.questionsAmount)
-
-            let message = "Ваш результат: \(presenter.correctAnswers)/10"
-            let accuracyText = String(format: "Средняя точность: %.2f%%", statisticService.totalAccuracy)
-            let gamesCountText = "Количество сыгранных квизов: \(statisticService.gamesCount)"
-            let bestGameText = "Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))"
-            let messageText = "\(message)\n\(gamesCountText)\n\(bestGameText)\n\(accuracyText)"
-
-            resultMessage = messageText
-        }
+        let resultMessage = presenter.makeResultsMessage()
         
-        let model = AlertModel(title: result.title, message: resultMessage, buttonText: result.buttonText) { [weak self] in
+        let model = AlertModel(title: result.title,
+                               message: resultMessage,
+                               buttonText: result.buttonText) { [weak self] in
             guard let self = self else { return }
 
             self.presenter.restartGame()
