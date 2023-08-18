@@ -21,7 +21,8 @@ final class AlertPresenter {
         }
         
         alertController.addAction(action)
-        
+        alertController.view.accessibilityIdentifier = "GameResultsAlertLabel"
+
         vc.present(alertController, animated: true, completion: nil)
     }
 }
