@@ -13,7 +13,7 @@ protocol MovieQuizViewControllerProtocol: AnyObject {
     func hideAnswerResult()
 }
 
-final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
+final class MovieQuizViewController: UIViewController {
     
     //MARK: - IBOutlet
     @IBOutlet private weak var imageView: UIImageView!
@@ -32,9 +32,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     override func viewDidLoad() {
         super.viewDidLoad()
         presenter = MovieQuizPresenter(viewController: self)
-    }
-
-    override func viewDidLayoutSubviews() {
         imageView.layer.cornerRadius = 20
     }
 
@@ -47,8 +44,9 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         presenter.noButtonClicked()
     }
+}
 
-    // MARK: - Private functions
+extension MovieQuizViewController: MovieQuizViewControllerProtocol {
     func show(quiz step: QuizStepViewModel) {
         imageView.layer.borderColor = UIColor.clear.cgColor
         imageView.contentMode = .scaleAspectFill
@@ -59,7 +57,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
 
     func showResult(quiz result: QuizResultsViewModel) {
         let resultMessage = presenter.makeResultsMessage()
-        
+
         let model = AlertModel(title: result.title,
                                message: resultMessage,
                                buttonText: result.buttonText) { [weak self] in
@@ -68,10 +66,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
             self.presenter.restartGame()
         }
         alertPresenter.presentAlert(in: self, with: model)
-    }
-
-    func hideAnswerResult() {
-        imageView.layer.borderWidth = 0
     }
 
     func highlightImageBorder(isCorrectAnswer: Bool) {
@@ -91,6 +85,9 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         activityIndicator.isHidden = true
     }
 
+    func hideAnswerResult() {
+        imageView.layer.borderWidth = 0
+    }
 
     func showNetworkError(message: String) {
         hideLoadingIndicator()
@@ -103,7 +100,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         alertPresenter.presentAlert(in: self, with: model)
     }
 }
-
 
 
 
